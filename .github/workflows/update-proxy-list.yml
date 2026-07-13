@@ -2,9 +2,7 @@ name: Update Proxy List
 
 on:
   schedule:
-    # 北京时间 07:00
     - cron: '0 23 * * *'
-    # 北京时间 19:00
     - cron: '0 11 * * *'
   workflow_dispatch:
 
@@ -32,12 +30,23 @@ jobs:
       - name: Generate proxy list
         run: python generate_proxy_list.py
 
+      - name: Debug proxy output
+        run: |
+          ls -lh
+          wc -l proxy.txt || true
+          head -20 proxy.txt || true
+          git status --short
+
+      - name: Write update time
+        run: |
+          date -u +"%Y-%m-%d %H:%M:%S UTC" > last_update.txt
+
       - name: Commit and push proxy.txt
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add proxy.txt
+          git add proxy.txt last_update.txt
 
           if git diff --cached --quiet; then
             echo "No changes to commit"
