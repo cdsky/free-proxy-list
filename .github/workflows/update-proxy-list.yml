@@ -22,31 +22,43 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Show current files
+        run: |
+          pwd
+          ls -lah
+          git status --short
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
       - name: Generate proxy list
-        run: python generate_proxy_list.py
-
-      - name: Debug proxy output
         run: |
-          ls -lh
+          python generate_proxy_list.py
+          echo "---- after generate ----"
+          ls -lah
+          echo "proxy lines:"
           wc -l proxy.txt || true
+          echo "proxy head:"
           head -20 proxy.txt || true
+          echo "git status:"
           git status --short
 
-      - name: Write update time
+      - name: Write update marker
         run: |
           date -u +"%Y-%m-%d %H:%M:%S UTC" > last_update.txt
+          cat last_update.txt
 
-      - name: Commit and push proxy.txt
+      - name: Commit and push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           git add proxy.txt last_update.txt
+
+          echo "---- staged diff ----"
+          git diff --cached --stat
 
           if git diff --cached --quiet; then
             echo "No changes to commit"
